@@ -229,7 +229,7 @@ class Plotter(object):
     def _gen_cmpdev_for_bench(self, ncore, bench):
         # for each file system
         print("## %s" % bench, file=self.out)
-        print("# fs ssd-rel hdd-rel mem ssd hdd", file=self.out)
+        print("# fs pmem-rel ssd-rel hdd-rel mem ssd hdd pmem", file=self.out)
         for fs in self._get_fs_list("*", bench):
             data = self.parser.search_data(["*", fs, bench, "%s" % ncore])
             dev_val = {}
@@ -249,14 +249,19 @@ class Plotter(object):
                 print("WARNING: there is no %s:%s:%s:%s result." %
                       ("hdd", fs, bench, ncore), file=sys.stderr)
                 continue
-            # fs ssd-rel hdd-rel mem ssd hdd 
+            if dev_val.get("pmem", None) == None:
+                print("WARNING: there is no %s:%s:%s:%s result." %
+                      ("pmem", fs, bench, ncore), file=sys.stderr)
+                continue    
+            # fs pmem-rel ssd-rel hdd-rel mem ssd hdd pmem 
             mem_perf = float(dev_val["mem"]["works/sec"])
             ssd_perf = float(dev_val["ssd"]["works/sec"])
             hdd_perf = float(dev_val["hdd"]["works/sec"])
-            print("%s %s %s %s %s %s" %
+            pmem_perf = float(dev_val["pmem"]["works/sec"])
+            print("%s %s %s %s %s %s %s %s" %
                   (fs,
-                   ssd_perf/mem_perf, hdd_perf/mem_perf,
-                   mem_perf, ssd_perf, hdd_perf),
+                   ssd_perf/mem_perf, hdd_perf/mem_perf, pmem_perf/mem_perf,
+                   mem_perf, ssd_perf, hdd_perf, pmem_perf),
                   file=self.out)
             # XXX: ugly ]]]
         print("\n", file=self.out)
@@ -267,7 +272,7 @@ class Plotter(object):
         self.out_file = os.path.join(self.out_dir, ("cmpdev.%s.dat" % ncore))
         self.out = open(self.out_file, "w")
         ## TC
-        # fs ssd-rel hdd-rel mem ssd hdd
+        # fs pmem-rel ssd-rel hdd-rel mem ssd hdd pmem
         for bench in self.config["bench"]:
             self._gen_cmpdev_for_bench(ncore, bench)
         self.out.close()

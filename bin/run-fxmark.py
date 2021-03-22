@@ -28,6 +28,7 @@ class Runner(object):
     NVMEDEV = "/dev/nvme0n1pX"
     HDDDEV  = "/dev/sdX"
     SSDDEV  = "/dev/sdY"
+    PMEMDEV = "/dev/pmemX"
 
     # test core granularity
     CORE_FINE_GRAIN   = 0
@@ -48,7 +49,7 @@ class Runner(object):
         self.DISK_SIZE     = "32G"
         self.DURATION      = 30 # seconds
         self.DIRECTIOS     = ["bufferedio", "directio"]  # enable directio except tmpfs -> nodirectio 
-        self.MEDIA_TYPES   = ["ssd", "hdd", "nvme", "mem"]
+        self.MEDIA_TYPES   = ["ssd", "hdd", "nvme", "mem", "pmem"]
 #        self.FS_TYPES      = [
         self.FS_TYPES      = ["tmpfs",
                               "ext4", "ext4_no_jnl",
@@ -136,6 +137,7 @@ class Runner(object):
             "nvme":self.init_nvme_disk,
             "ssd":self.init_ssd_disk,
             "hdd":self.init_hdd_disk,
+            "pmem":self.init_pmem_disk,
         }
 
         # misc. setup
@@ -275,7 +277,7 @@ class Runner(object):
             if p.returncode is not 0:
                 break
         (umount_hook, self.umount_hook) = (self.umount_hook, [])
-        map(lambda hook: hook(), umount_hook);
+        map(lambda hook: hook(), umount_hook)
 
     def init_mem_disk(self):
         self.unset_loopdev()
@@ -283,7 +285,7 @@ class Runner(object):
         self.unset_loopdev()
         self.exec_cmd("mkdir -p " + self.tmp_path, self.dev_null)
         if not self.mount_tmpfs("mem", "tmpfs", self.tmp_path):
-            return False;
+            return False
         self.exec_cmd("dd if=/dev/zero of=" 
                       + self.disk_path +  " bs=1G count=1024000",
                       self.dev_null)
@@ -303,6 +305,9 @@ class Runner(object):
 
     def init_ssd_disk(self):
         return (os.path.exists(Runner.SSDDEV), Runner.SSDDEV)
+    
+    def init_pmem_disk(self):
+        return (os.path.exists(Runner.PMEMDEV), Runner.PMEMDEV)
 
     def init_hdd_disk(self):
         return (os.path.exists(Runner.HDDDEV), Runner.HDDDEV)
@@ -371,7 +376,7 @@ class Runner(object):
     def mount(self, media, fs, mnt_path):
         mount_fn = self.HOWTO_MOUNT.get(fs, None)
         if not mount_fn:
-            return False;
+            return False
 
         self.umount(mnt_path)
         self.exec_cmd("mkdir -p " + mnt_path, self.dev_null)
@@ -423,7 +428,7 @@ class Runner(object):
         if directio is '1':
             if fs is "tmpfs": 
                 print("# INFO: DirectIO under tmpfs disabled by default")
-                directio='0';
+                directio='0'
             else: 
                 print("# INFO: DirectIO Enabled")
 
@@ -482,8 +487,8 @@ def confirm_media_path():
     print("%" * 80)
     print("%% WARNING! WARNING! WARNING! WARNING! WARNING!")
     print("%" * 80)
-    yn = input("All data in %s, %s, %s and %s will be deleted. Is it ok? [Y,N]: "
-            % (Runner.HDDDEV, Runner.SSDDEV, Runner.NVMEDEV, Runner.LOOPDEV))
+    yn = input("All data in %s, %s, %s, %s and %s will be deleted. Is it ok? [Y,N]: "
+            % (Runner.PMEMDEV, Runner.HDDDEV, Runner.SSDDEV, Runner.NVMEDEV, Runner.LOOPDEV))
     if yn != "Y":
         print("Please, check Runner.LOOPDEV and Runner.NVMEDEV")
         exit(1)
