@@ -28,7 +28,7 @@ class Runner(object):
     NVMEDEV = "/dev/nvme0n1pX"
     HDDDEV  = "/dev/sdX"
     SSDDEV  = "/dev/sdY"
-    PMEMDEV = "/dev/pmem7"
+    PMEMDEV = "/dev/pmem0"
 
     # test core granularity
     CORE_FINE_GRAIN   = 0
@@ -54,7 +54,7 @@ class Runner(object):
         self.FS_TYPES      = ["tmpfs",
                               "ext4", "ext4_no_jnl",
                               "xfs",
-                              "btrfs", "f2fs",
+                              "btrfs", "f2fs", "nova"
                               # "jfs", "reiserfs", "ext2", "ext3",
         ]
         self.BENCH_TYPES   = [
@@ -119,6 +119,7 @@ class Runner(object):
             "f2fs":self.mount_anyfs,
             "jfs":self.mount_anyfs,
             "reiserfs":self.mount_anyfs,
+            "nova":self.mount_nova
         }
         self.HOWTO_MKFS = {
             "ext2":"-F",
@@ -325,6 +326,19 @@ class Runner(object):
                           self.dev_null)
         return p.returncode == 0
 
+    def mount_nova(self, media, fs, mnt_path):
+        (rc, dev_path) = self.init_media(media)
+        if not rc:
+            return False
+        p = self.exec_cmd(' '.join(["sudo mount -t NOVA -o init", dev_path, mnt_path]), self.dev_null)
+        if p.returncode != 0:
+            return False
+        p = self.exec_cmd("sudo chmod 777 " + mnt_path,
+                          self.dev_null)
+        if p.returncode != 0:
+            return False
+        return True
+ 
     def mount_anyfs(self, media, fs, mnt_path):
         (rc, dev_path) = self.init_media(media)
         if not rc:
@@ -336,9 +350,13 @@ class Runner(object):
                           self.dev_null)
         if p.returncode != 0:
             return False
-        p = self.exec_cmd(' '.join(["sudo mount -t", fs,
-                                    dev_path, mnt_path]),
-                          self.dev_null)
+        if fs == "ext4":
+            cmd = ' '.join(["sudo mount -o dax -t", fs,
+                                    dev_path, mnt_path])
+        else:
+            cmd = ' '.join(["sudo mount -t", fs,
+                                    dev_path, mnt_path])
+        p = self.exec_cmd(cmd, self.dev_null)
         if p.returncode != 0:
             return False
         p = self.exec_cmd("sudo chmod 777 " + mnt_path,
@@ -396,6 +414,13 @@ class Runner(object):
                 for media in self.MEDIA_TYPES:
                     for dio in self.DIRECTIOS:
                         for fs in self.FS_TYPES:
+                            
+                            if fs == "nova" and media != "pmem":
+                                continue
+                            if fs == "nova" and media == "pmem" and bench == "MWUM":
+                                continue
+                            if fs == "nova" and media == "pmem" and bench == "MWUL":
+                                continue
                             if fs == "tmpfs" and media != "mem":
                                 continue
                             mount_fn = self.HOWTO_MOUNT.get(fs, None)
@@ -522,7 +547,7 @@ if __name__ == "__main__":
     run_config = [
         (Runner.CORE_FINE_GRAIN,
          PerfMon.LEVEL_LOW,
-         ("pmem", "ext4", "DWOL", "1", "directio")),
+         ("pmem", "ext4", "*", "*", "directio")),
         # ("mem", "tmpfs", "filebench_varmail", "32", "directio")),
         # (Runner.CORE_COARSE_GRAIN,
         #  PerfMon.LEVEL_PERF_RECORD,
@@ -533,7 +558,7 @@ if __name__ == "__main__":
         #  ("*", "*", "*", str(cpupol.PHYSICAL_CHIPS * cpupol.CORE_PER_CHIP), "*"))
     ]
 
-    confirm_media_path()
+    # confirm_media_path()
     for c in run_config:
         runner = Runner(c[0], c[1], c[2])
         runner.run()
