@@ -54,7 +54,7 @@ class Runner(object):
         self.FS_TYPES      = ["tmpfs",
                               "ext4", "ext4_no_jnl",
                               "xfs",
-                              "btrfs", "f2fs", "nova"
+                              "btrfs", "f2fs", "nova", "splitfs"
                               # "jfs", "reiserfs", "ext2", "ext3",
         ]
         self.BENCH_TYPES   = [
@@ -119,7 +119,8 @@ class Runner(object):
             "f2fs":self.mount_anyfs,
             "jfs":self.mount_anyfs,
             "reiserfs":self.mount_anyfs,
-            "nova":self.mount_nova
+            "nova":self.mount_nova,
+            "splitfs":self.mount_splitfs
         }
         self.HOWTO_MKFS = {
             "ext2":"-F",
@@ -149,6 +150,8 @@ class Runner(object):
         self.ncores      = self.get_ncores()
         self.test_root   = os.path.normpath(
             os.path.join(CUR_DIR, self.ROOT_NAME))
+        if self.FILTER[1] == "splitfs":
+            self.test_root="/mnt/pmem_emul"
         self.fxmark_path = os.path.normpath(
             os.path.join(CUR_DIR, self.FXMARK_NAME))
         self.filebench_path = os.path.normpath(
@@ -338,7 +341,14 @@ class Runner(object):
         if p.returncode != 0:
             return False
         return True
- 
+    
+    def mount_splitfs(self, media, fs, mnt_path):
+        if mnt_path != "/mnt/pmem_emul":
+            return False
+        if not self.mount_anyfs(media, "ext4", mnt_path):
+            return False
+        return True    
+
     def mount_anyfs(self, media, fs, mnt_path):
         (rc, dev_path) = self.init_media(media)
         if not rc:
@@ -547,7 +557,8 @@ if __name__ == "__main__":
     run_config = [
         (Runner.CORE_FINE_GRAIN,
          PerfMon.LEVEL_LOW,
-         ("pmem", "ext4", "*", "*", "directio")),
+        #  set splitfs env val outside, because if set here, only this and its child process will take effect
+         ("pmem", "splitfs", "MRDL", "1", "directio")),
         # ("mem", "tmpfs", "filebench_varmail", "32", "directio")),
         # (Runner.CORE_COARSE_GRAIN,
         #  PerfMon.LEVEL_PERF_RECORD,
