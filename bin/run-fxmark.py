@@ -262,7 +262,7 @@ class Runner(object):
                       self.dev_null)
         self.drop_caches()
         self.exec_cmd("sync", self.dev_null)
-        self.set_cpus(ncore)
+        # self.set_cpus(ncore)
 
     def pre_work(self):
         self.keep_sudo()
@@ -558,7 +558,7 @@ if __name__ == "__main__":
         (Runner.CORE_FINE_GRAIN,
          PerfMon.LEVEL_LOW,
         #  set splitfs env val outside, because if set here, only this and its child process will take effect
-         ("mem", "tmpfs", "*", "*", "directio")),
+         ("mem", "tmpfs", "*", "*", "bufferedio")),
         # ("mem", "tmpfs", "filebench_varmail", "32", "directio")),
         # (Runner.CORE_COARSE_GRAIN,
         #  PerfMon.LEVEL_PERF_RECORD,

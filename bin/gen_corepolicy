@@ -66,7 +66,8 @@ def gen_test_hw_thr_counts(fine_grain):
                 test_hw_thr.add(cnt)
             cnt += inc
     #hard-code the cpu policy
-    test_hw_thr=set([1,2,4,8,16,24,28,32,40,48,56,64,72,80,84,88,96,104,112,120,128,136,140,144,152,160,168,176,184,192,196,200,208,216,224])
+    test_hw_thr=set([1,2,4,8,16,28,56,84,112,140,168,196,224])
+    # test_hw_thr=set([1,2,4,8,16,28,56,84,112,140,144,152,160,168,176,184,192,196,200,208,216,224])
     # make it sorted string
     return ','.join( map(lambda cnt: str(cnt), sorted(list(test_hw_thr))) )
 
