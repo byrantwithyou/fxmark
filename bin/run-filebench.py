@@ -71,7 +71,7 @@ class FileBench(object):
                     self.bench_out.write(l)
                     l_str = str(l)
                     idx = l_str.find(FileBench.PERF_STR)
-                    if idx is not -1:
+                    if idx != -1:
                         self.perf_msg = l_str[idx+len(FileBench.PERF_STR):]
                 # if not p.poll():
                 #    break
