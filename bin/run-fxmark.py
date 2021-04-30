@@ -28,7 +28,7 @@ class Runner(object):
     NVMEDEV = "/dev/nvme0n1pX"
     HDDDEV  = "/dev/sdX"
     SSDDEV  = "/dev/sdY"
-    PMEMDEV = "/dev/pmem0"
+    PMEMDEV = "/dev/pmem7"
 
     # test core granularity
     CORE_FINE_GRAIN   = 0
@@ -558,7 +558,7 @@ if __name__ == "__main__":
         (Runner.CORE_FINE_GRAIN,
          PerfMon.LEVEL_LOW,
         #  set splitfs env val outside, because if set here, only this and its child process will take effect
-         ("mem", "tmpfs", "*", "*", "bufferedio")),
+         ("pmem", "ext4", "*", "*", "bufferedio")),
         # ("mem", "tmpfs", "filebench_varmail", "32", "directio")),
         # (Runner.CORE_COARSE_GRAIN,
         #  PerfMon.LEVEL_PERF_RECORD,
@@ -569,7 +569,7 @@ if __name__ == "__main__":
         #  ("*", "*", "*", str(cpupol.PHYSICAL_CHIPS * cpupol.CORE_PER_CHIP), "*"))
     ]
 
-    # confirm_media_path()
+    confirm_media_path()
     for c in run_config:
         runner = Runner(c[0], c[1], c[2])
         runner.run()
