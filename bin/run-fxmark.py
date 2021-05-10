@@ -558,7 +558,7 @@ if __name__ == "__main__":
         (Runner.CORE_FINE_GRAIN,
          PerfMon.LEVEL_LOW,
         #  set splitfs env val outside, because if set here, only this and its child process will take effect
-         ("pmem", "ext4", "*", "*", "bufferedio")),
+         ("mem", "tmpfs", "DWOM", "140", "bufferedio")),
         # ("mem", "tmpfs", "filebench_varmail", "32", "directio")),
         # (Runner.CORE_COARSE_GRAIN,
         #  PerfMon.LEVEL_PERF_RECORD,
