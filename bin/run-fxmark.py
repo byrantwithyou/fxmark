@@ -556,7 +556,7 @@ if __name__ == "__main__":
     # TODO: make it scriptable
     run_config = [
         (Runner.CORE_FINE_GRAIN,
-         PerfMon.LEVEL_LOW,
+         PerfMon.LEVEL_PERF_RECORD,
         #  set splitfs env val outside, because if set here, only this and its child process will take effect
          ("mem", "tmpfs", "DWOM", "140", "bufferedio")),
         # ("mem", "tmpfs", "filebench_varmail", "32", "directio")),
